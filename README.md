@@ -3,9 +3,12 @@ example of how vector embeddings work using plain text embeddings, the model tak
 The point of this was for me to better understand embedding models and how the vectors get stored in a database
 
 ![image](/demo.png)
-[pgvector docs][https://github.com/pgvector/pgvector]
-[pgvector python postgres adapter][https://github.com/pgvector/pgvector-python?tab=readme-ov-file#psycopg-3]
-[sentence transformers][https://sbert.net/]
+
+[pgvector docs](https://github.com/pgvector/pgvector)
+
+[pgvector python postgres adapter](https://github.com/pgvector/pgvector-python?tab=readme-ov-file#psycopg-3)
+
+[sentence transformers](https://sbert.net/)
 
 1. **Start PostgreSQL with pgvector:**
 
