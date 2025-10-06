@@ -1,0 +1,13 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.1-pg18-trixie
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: vecdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
