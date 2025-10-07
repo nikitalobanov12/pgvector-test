@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 import psycopg
 from pgvector.psycopg import register_vector
+from typing import List
 
 DB_CONFIG = "host=localhost port=5432 dbname=vecdb user=dev password=dev"
 
@@ -27,6 +28,22 @@ def add_document(content: str):
     cur.close()
     conn.close()
     print(f"Added: {content}")
+
+
+def batch_add(content: List[str]):
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embeddings = model.encode(content)
+    conn = create_connection()
+    cur = conn.cursor()
+
+    for string, embedding in zip(content, embeddings):
+        cur.execute(
+            "INSERT INTO documents (content, embedding) VALUES (%s, %s)",
+            (string, embedding),
+        )
+    conn.commit()
+    cur.close()
+    print(f"Added:{content}")
 
 
 def search_similar(query: str, limit: int = 5):
@@ -93,8 +110,7 @@ if __name__ == "__main__":
     ]
 
     print("Adding sample documents...")
-    for doc in sample_docs:
-        add_document(doc)
+    batch_add(sample_docs)
 
     print("\n" + "=" * 50)
     query = "database technology"
