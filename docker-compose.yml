@@ -9,5 +9,14 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://dev:dev@db:5432/vecdb
+      MODEL_NAME: all-MiniLM-L6-v2
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
 volumes:
   pgdata:

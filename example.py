@@ -1,14 +1,17 @@
+import os
+from typing import List
+
 from sentence_transformers import SentenceTransformer
 import psycopg
 from pgvector.psycopg import register_vector
-from typing import List
 
-DB_CONFIG = "host=localhost port=5432 dbname=vecdb user=dev password=dev"
+DB_CONFIG = os.getenv("DATABASE_URL", "postgresql://dev:dev@localhost:5432/vecdb")
 
 
-def create_connection():
+def create_connection(register: bool = True):
     conn = psycopg.connect(DB_CONFIG)
-    register_vector(conn)
+    if register:
+        register_vector(conn)
     return conn
 
 
@@ -21,7 +24,7 @@ def add_document(content: str):
 
     cur.execute(
         "INSERT INTO documents (content, embedding) VALUES (%s, %s)",
-        (content, embedding),
+        (content, embedding.tolist()),
     )
 
     conn.commit()
@@ -39,10 +42,11 @@ def batch_add(content: List[str]):
     for string, embedding in zip(content, embeddings):
         cur.execute(
             "INSERT INTO documents (content, embedding) VALUES (%s, %s)",
-            (string, embedding),
+            (string, embedding.tolist()),
         )
     conn.commit()
     cur.close()
+    conn.close()
     print(f"Added:{content}")
 
 
@@ -60,7 +64,7 @@ def search_similar(query: str, limit: int = 5):
         ORDER BY embedding <=> %s
         LIMIT %s
         """,
-        (query_embedding, query_embedding, limit),
+        (query_embedding.tolist(), query_embedding.tolist(), limit),
     )
 
     results = cur.fetchall()
@@ -77,7 +81,7 @@ def clear_database():
     conn.commit()
     cur.close()
     conn.close()
-    print("datbase cleared")
+    print("database cleared")
 
 
 def inspect_database(depth: int = 10):

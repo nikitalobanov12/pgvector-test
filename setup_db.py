@@ -1,32 +1,36 @@
+import os
+
 import psycopg
 from pgvector.psycopg import register_vector
 
-DB_CONFIG = "host=localhost port=5432 dbname=vecdb user=dev password=dev"
+DB_CONFIG = os.getenv("DATABASE_URL", "postgresql://dev:dev@localhost:5432/vecdb")
 
 
-def create_connection():
+def create_connection(register: bool = True):
     conn = psycopg.connect(DB_CONFIG)
-    register_vector(conn)
+    if register:
+        register_vector(conn)
     return conn
 
 
 def setup_database():
-    conn = psycopg.connect(DB_CONFIG)
+    conn = create_connection(register=False)
     cur = conn.cursor()
 
     cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
     conn.commit()
 
     register_vector(conn)
-
     cur.execute("DROP TABLE IF EXISTS documents")
-    cur.execute("""
+    cur.execute(
+        """
         CREATE TABLE documents (
             id SERIAL PRIMARY KEY,
             content TEXT,
             embedding vector(384)
         )
-    """)
+        """
+    )
 
     cur.execute(
         "CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
