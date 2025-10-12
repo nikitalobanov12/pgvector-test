@@ -6,3 +6,12 @@
 
 
 AGENTS.md
+
+# Terraform state and local variables
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate.*
+terraform/*.tfvars
+terraform/*.auto.tfvars

@@ -1,0 +1,47 @@
+#!/bin/bash
+set -euxo pipefail
+
+exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+APP_REPO_URL="${app_repo_url}"
+APP_BRANCH="${app_branch}"
+
+if [ -z "$${APP_REPO_URL}" ]; then
+  echo "APP_REPO_URL must be provided" >&2
+  exit 1
+fi
+
+dnf -y update
+# Install base tooling for git and docker
+DNF_PACKAGES=(git docker curl)
+dnf -y install "$${DNF_PACKAGES[@]}"
+
+systemctl enable docker
+systemctl start docker
+usermod -aG docker ec2-user
+
+# Install Docker Compose CLI plugin
+DOCKER_COMPOSE_VERSION="2.27.0"
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -SL "https://github.com/docker/compose/releases/download/v$${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+install -d -m 0755 -o ec2-user -g ec2-user /opt/embedding-service
+
+if [ ! -d /opt/embedding-service/app/.git ]; then
+  sudo -u ec2-user git clone --depth 1 --branch "$${APP_BRANCH}" "$${APP_REPO_URL}" /opt/embedding-service/app
+else
+  sudo -u ec2-user git -C /opt/embedding-service/app fetch origin "$${APP_BRANCH}"
+  sudo -u ec2-user git -C /opt/embedding-service/app checkout "$${APP_BRANCH}"
+  sudo -u ec2-user git -C /opt/embedding-service/app pull --ff-only origin "$${APP_BRANCH}"
+fi
+
+cat <<'EOF_DOCKER' > /opt/embedding-service/docker-compose.yaml
+${docker_compose}
+EOF_DOCKER
+
+chown ec2-user:ec2-user /opt/embedding-service/docker-compose.yaml
+
+sudo -u ec2-user /usr/bin/docker compose -f /opt/embedding-service/docker-compose.yaml pull postgres
+sudo -u ec2-user /usr/bin/docker compose -f /opt/embedding-service/docker-compose.yaml up -d --build
