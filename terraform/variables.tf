@@ -13,7 +13,7 @@ variable "instance_type" {
 variable "root_volume_size" {
   description = "Root volume size (GB) for the EC2 instance"
   type        = number
-  default     = 20
+  default     = 30
 }
 
 variable "instance_name" {
