@@ -40,7 +40,7 @@ variable "app_repository_url" {
 variable "app_branch" {
   description = "Git branch to check out for the application"
   type        = string
-  default     = "main"
+  default     = "master"
 }
 
 variable "db_username" {

@@ -41,6 +41,7 @@ This configuration provisions a single EC2 instance in AWS (`us-west-2` by defau
 - `model_name`: set to any SentenceTransformers identifier available on Hugging Face.
 - `db_username`, `db_password`, `db_name`: adjust if you want non-default credentials.
 - `root_volume_size`: defaults to `30` because the Amazon Linux 2023 AMI snapshot requires at least 30 GB. Increase if you need extra space.
+- `app_branch`: defaults to `master` (the current default branch in this repo). Override if your fork uses a different branch name.
 
 ## Notes
 - Docker Compose writes a named volume (`pg_data`), which lives on the EC2 root volume. Root volume size is configurable via `root_volume_size` (default: 20 GB).
